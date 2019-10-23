@@ -375,6 +375,8 @@ Omak_diff <- merge(Omak_2008,AG_2008, by= "Date")
 Omak_diff$diff <- Omak_diff$t_min.x - Omak_diff$t_min.y
 Omak_diff
 
+
+
 Comp_2008_tmin <- ggplot()+
   geom_line(data = Omak_2008, aes(x= Omak_2008$Date, y= Omak_2008$t_min, color = "tmin"))+
   geom_line(data = AG_2008, aes(x=AG_2008$Date, y = AG_2008$t_min, color = "AG_tmin"))+
