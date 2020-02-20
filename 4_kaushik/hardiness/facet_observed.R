@@ -15,10 +15,11 @@ library(reshape2)
 
 # List of files in the location
 
-file_location <- "/data/hydro/users/kraghavendra/hardiness/output_data/observed/"
-# file_location <- "C:/Users/Kaushik Acharya/Documents/Research Task - Kirti/4_kaushik/hardiness/Output_data/observed/"
+# file_location <- "/data/hydro/users/kraghavendra/hardiness/output_data/observed/"
+file_location <- "C:/Users/Kaushik Acharya/Documents/Research Task - Kirti/4_kaushik/hardiness/Output_data/observed/"
 
 files_Total <- list.files(path= file_location)
+files_Total <- files_Total[-c(1:5)]
 files_Total
 
 for (names in files_Total)

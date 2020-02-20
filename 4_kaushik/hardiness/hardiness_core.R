@@ -335,4 +335,223 @@ hardiness_model <- function(data,
 }
 
 
+hardiness_model_AGweather <- function(AG_data, 
+                            input_params = input_params,
+                            variety_params = variety_params){
+  options(digits=9)
+  output = data.table(matrix(NA, nrow=dim(AG_data)[1], ncol=11))
+  colnames(output) <- c(#"variety", #"location", S
+                        "Station_ID","year", "Date", "jday", "t_mean", "t_max", 
+                        "t_min", "predicted_Hc","budbreak", "predicted_on","CDI")
+  
+  #output$predicted_on <- as.character(output$predicted_on)
+  
+  #output$variety <- as.character(output$variety)
+  #output$location <- as.character(output$location)
+  
+  #location = data$Location[1]
+  # year_1 = data$year
+  # The following is just name of a given column
+  # to be used to name a column in the output sheet/file.
+  temp <- colnames(AG_data)[7]
+  variety <- input_params$variety[1]
+  
+  Hc_initial <- input_params$Hc_initial[1]
+  Hc_min<- input_params$Hc_min[1]
+  Hc_max <- input_params$Hc_max[1]
+  ####################################################################
+  #################
+  ################# In the following vectors of size 2, the first
+  ################# entry is _endo and the second is _eco type.
+  #################
+  ####################################################################
+  T_threshold <- c(input_params$t_threshold_endo[1], 
+                   input_params$t_threshold_eco[1])
+  # print(T_threshold)
+  # print(input_params$t_threshold_endo[1])
+  # print(input_params$t_threshold)
+  
+  acclimation_rate <- c(input_params$acclimation_rate_endo[1],
+                        input_params$acclimation_rate_eco[1])
+  
+  
+  deacclimation_rate<- c(input_params$deacclimation_rate_endo[1],
+                         input_params$deacclimation_rate_eco[1])
+  ####################################################################
+  ecodormancy_boundary <- input_params$Ecodormancy_boundary[1]
+  theta <- c(1, input_params$theta[1])
+  
+  # calculate range of hardiness values possible, 
+  # this is needed for the logistic component
+  ################################################## What the hell is going on here?
+  Hc_range = Hc_min - Hc_max 
+  
+  # initialize some of the parameters
+  DD_heating_sum = 0
+  DD_chilling_sum = 0
+  base10_chilling_sum = 0
+  model_Hc_yesterday = Hc_initial
+  dormancy_period = 1
+  
+  # number of observations 
+  n_rows = dim(AG_data)[1]
+  
+  #changing format of the Date column to Date format
+  AG_data$Date <- as.Date(AG_data$Date, format ="%m/%d/%Y")
+  
+  
+  for (row_count in 1:n_rows){
+    # print(row_count)
+    # jdate <- data[row_count, 1]
+    # the following line is done so we can write
+    # the result in CSV format.
+    # (when class of the variable was of format factor, it had problem)
+    jdate = as.character((AG_data$Date[row_count]))
+    jday = AG_data$jday[row_count]   # jday <- data[row_count, 3]
+    # t_mean= data$T_mean[row_count] # t_mean = data[row_count, 5]
+    # print(T_threshold[dormancy_period])
+    
+    # print(sapply(data$Date, class))
+    
+    
+    if(format(AG_data$Date[row_count], "%m")=="09" && format(AG_data$Date[row_count], "%d")=="01")
+      # if (grepl("9/1",meta_data$Date[row_count])== TRUE)
+    {
+      Hc_initial <- input_params$Hc_initial[1]
+      Hc_min<- input_params$Hc_min[1]
+      Hc_max <- input_params$Hc_max[1] 
+      
+      
+      T_threshold <- c(input_params$t_threshold_endo[1], 
+                       input_params$t_threshold_eco[1])
+      # print(T_threshold)
+      # print(input_params$t_threshold_endo[1])
+      # print(input_params$t_threshold)
+      
+      acclimation_rate <- c(input_params$acclimation_rate_endo[1],
+                            input_params$acclimation_rate_eco[1])
+      
+      
+      deacclimation_rate<- c(input_params$deacclimation_rate_endo[1],
+                             input_params$deacclimation_rate_eco[1])
+      ####################################################################
+      ecodormancy_boundary <- input_params$Ecodormancy_boundary[1]
+      theta <- c(1, input_params$theta[1])
+      
+      
+      DD_heating_sum = 0
+      DD_chilling_sum = 0
+      base10_chilling_sum = 0
+      model_Hc_yesterday = Hc_initial
+      dormancy_period = 1
+    }
+    
+    
+    if (is.na(AG_data$T_mean[row_count])){
+      message(sprintf("AG_data$T_mean[row_count] is empty (NA) at row %s\n", row_count))
+      break
+    }
+    t_max = AG_data$tmax[row_count]    # t_max = data[row_count, 6]
+    t_min = AG_data$tmin[row_count]    # t_min = data[row_count, 7]
+    # observed_Hc = data$Observed_Hc[row_count] # observed_Hc = data[row_count, 8]
+    
+    # calculate heating degree days for today used in deacclimation
+    if (AG_data$T_mean[row_count] > T_threshold[dormancy_period]){
+      DD_heating_today <- AG_data$T_mean[row_count] - T_threshold[dormancy_period]
+    } else {
+      DD_heating_today = 0
+    }
+    
+    # calculate cooling degree days for today used in acclimation
+    if (AG_data$T_mean[row_count] <= T_threshold[dormancy_period]){
+      DD_chilling_today = AG_data$T_mean[row_count] - T_threshold[dormancy_period]
+    } else{
+      DD_chilling_today = 0
+    }
+    
+    # calculate cooling degree days using base
+    # of 10c to be used in dormancy release
+    if(AG_data$T_mean[row_count] <= 10){
+      base10_chilling_today = AG_data$T_mean[row_count] - 10
+    } else {
+      base10_chilling_today = 0
+    }
+    
+    # calculate new model_Hc for today
+    deacclimation = DD_heating_today * deacclimation_rate[dormancy_period] *
+      (1 - ((model_Hc_yesterday - Hc_max) / Hc_range) ^ theta[[dormancy_period]])
+    
+    # do not allow deacclimation unless
+    # some chilling has occured,
+    # the actual start of the model
+    if (DD_chilling_sum == 0){ deacclimation = 0}
+    
+    acclimation = DD_chilling_today * acclimation_rate[dormancy_period] *
+      (1 - (Hc_min - model_Hc_yesterday) / Hc_range)
+    Delta_Hc = acclimation + deacclimation
+    model_Hc = model_Hc_yesterday + Delta_Hc
+    
+    # limit the hardiness to known min and max
+    if (model_Hc <= Hc_max) {model_Hc = Hc_max}
+    if (model_Hc > Hc_min) { model_Hc = Hc_min }
+    
+    # sum up chilling degree days
+    DD_chilling_sum = DD_chilling_sum + DD_chilling_today
+    
+    base10_chilling_sum = base10_chilling_sum + base10_chilling_today
+    
+    # sum up heating degree days only if chilling requirement has been met
+    #  i.e dormancy period 2 has started
+    if (dormancy_period == 2) {DD_heating_sum = DD_heating_sum + DD_heating_today}
+    
+    # determine if chilling requirement has been met
+    # re-set dormancy period
+    # order of this and other if statements
+    # are consistant with Ferguson et al, or V6.3 of our SAS code
+    if (base10_chilling_sum <= ecodormancy_boundary){dormancy_period = 2}
+    
+    output$Station_ID[row_count] = AG_data$Station_ID
+    #output$location[row_count] = as.character(location)
+    output$year[row_count] = AG_data$year[row_count]
+    output$Date[row_count] = jdate
+    output$jday[row_count] = jday
+    output$t_mean[row_count] = AG_data$T_mean[row_count]
+    output$t_max[row_count] = t_max
+    output$t_min[row_count] = t_min
+    
+    output$predicted_Hc[row_count] = model_Hc
+    # output$observed_Hc[row_count] = observed_Hc
+    output$CDI[row_count] = if(output$t_min[row_count] < output$predicted_Hc[row_count]) 1 else 0
+    
+    # use Hc_min to determine if vinifera or labrusca
+    if (Hc_min == -1.2){
+      if(model_Hc_yesterday < -2.2){
+        if(model_Hc >= -2.2){
+          output$predicted_on[1] = jdate
+          output$budbreak[row_count] = model_Hc
+        }
+      }
+    }
+    
+    if(Hc_min == -2.5){
+      if(model_Hc_yesterday < -6.4){
+        if(model_Hc >= -6.4){
+          output$predicted_on[1] = jdate
+          output$budbreak[row_count] = model_Hc
+        }
+      }
+    }
+    
+    # remember todays hardiness for tomarrow
+    model_Hc_yesterday = model_Hc
+  }
+  # output$CDI = if(output$t_min < output$predicted_Hc) 1 else 0 
+  # output <- output %>% mutate(CDI = if(output$t_min < output$predicted_Hc) 1 else 0 )
+  return(output)
+}
+
+
+
+
+
   

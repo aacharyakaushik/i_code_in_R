@@ -470,3 +470,12 @@ ggsave(paste0(map_plot_location, "Probability.png"), height = 10, width =10)
 
 Washington_base+
   geom_polygon(data = crop_grid, aes(x=long, y = lat), inherit.aes = FALSE)
+
+
+
+
+
+##################### RDS file #################
+data_obs <- read.csv("C:/Users/Kaushik Acharya/Documents/R Scripts/i_code_in_R/4_kaushik/hardiness/Output_data/observed/output_observed_historical_data_45.84375_-120.84375.csv")
+data_obs
+saveRDS(data_obs, "C:/Users/Kaushik Acharya/Documents/R Scripts/i_code_in_R/4_kaushik/hardiness/Output_data/observed/output_observed_historical_data_45.84375_-120.84375.rds")
