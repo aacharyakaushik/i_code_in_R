@@ -1,4 +1,4 @@
-
+ 
 library(data.table)
 library(dplyr)
 library(tidyverse)
@@ -102,8 +102,34 @@ for (stations in grid_AG_5){
     
   }
   
+  
+  
+  #######################################################
+  # Custom Theme
+  #######################################################
+  
+  custom_theme <- function () {
+    theme_gray() %+replace%
+      theme(plot.title = element_text(size=16, face="bold"),
+            # panel.background = element_blank(),
+            # panel.border = element_blank(),
+            panel.spacing=unit(.25, "cm"),
+            legend.title = element_text(face="plain", size=36),
+            legend.text = element_text(size=10),
+            legend.position = "bottom",
+            legend.key.size = unit(.65, "cm"),
+            strip.text = element_text(size= 24, face="bold", color="black"),
+            axis.text = element_text(face="bold", size=24, color="black"),
+            axis.ticks = element_line(color = "black", size = .2),
+            axis.title.x = element_text(face="bold", size=36, margin=margin(t=10, r=0, b=0, l=0), color="black"),
+            axis.title.y = element_text(face="bold", size=36, margin=margin(t=0, r=10, b=0, l=0), color="black",angle = 90))
+    }
+  
+  
   dim(input_AG)
   dim(input_grid)
+
+  
   ##############################################################
   # Plots for comparision between two data
   ##############################################################
@@ -275,6 +301,11 @@ for (stations in grid_AG_5){
   ggsave(plot = Hc_facet, paste0(plot_location,"Hc_comparison_facet.PNG"), 
          height = 10, width = 10)
   
+  
+  
+  
+  
+  
   # facet plot for Tmax 
   Max_temp_facet <-  ggplot()+
     geom_line(data = Merge_diff, aes(x = Merge_diff$counter, y = Merge_diff$t_max.x,
@@ -406,6 +437,44 @@ for (stations in grid_AG_5){
   ggsave(plot = max_mean_mean_facet, paste0(plot_location,"Temperature_difference_facet_long.PNG"), 
            height = 40 , width = 20)
     
+  
+  ################################################
+  # Stacked area plot
+  ###############################################
+  
+  comp_area <- ggplot()+
+    geom_area(data = comp_Merge_melt, aes(counter, value, fill = factor(variable)),
+                                          position = 'stack')+
+    facet_wrap(~ hardiness_year.x,scales = "free")+
+    scale_fill_manual(values = c("max" = "red", "min" = "blue", "mean" = "yellow"))+
+    xlab('Date')+
+    ylab('Temperature')+
+    ggtitle('Area plot for temperaure difference')
+  
+  comp_area
+  
+  
+  comp_area <- comp_area + custom_theme()
+  
+  comp_area <- comp_area + theme(plot.title = element_text(size=16, face="bold"),
+                    panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    panel.spacing=unit(.25, "cm"),
+                    legend.title = element_text(face="plain", size=16),
+                    legend.text = element_text(size=14),
+                    legend.position = "bottom",
+                    legend.key.size = unit(.65, "cm"),
+                    strip.text = element_text(size=16, face="bold", color="black"),
+                    # axis.text = element_text(face="bold", size=14, color="black"),
+                    axis.ticks = element_line(color = "black", size = .2),
+                    axis.title.x = element_text(face="bold", size=16, margin=margin(t=10, r=0, b=0, l=0), color="black"),
+                    axis.title.y = element_text(face="bold", size=16, margin=margin(t=0, r=10, b=0, l=0), color="black"))
+  
+  
+  ggsave(plot = comp_area, paste0(plot_location,"Area_plot.PNG"), 
+         height = 15 , width = 20)
+  
+  
   #######################################################
   # Predicted HC with different colors and CDI only
   #######################################################
@@ -414,7 +483,7 @@ for (stations in grid_AG_5){
   head(Merge_diff)
   just_Hc_diff <- Merge_diff %>% select (Date, year.x, Hc, counter, hardiness_year.x)
   dim(just_Hc_diff)
-  head(just_Hc_diff)
+  head(just_Hc_diff, 50)
   
   # adding a column to check for postives and negatives
   just_Hc_diff$sign <- ifelse(just_Hc_diff$Hc >= 0, "positive", "negative")
@@ -429,36 +498,28 @@ for (stations in grid_AG_5){
   CDI_AG <- subset(CDI_AG, CDI_AG$CDI.y > 0)
   CDI_AG
   
+  head(just_Hc_diff$Hc,50)
+  
   # plot for difference of Hc with critical days
   just_hc <- ggplot()+
     geom_bar(data = just_Hc_diff, aes(x = just_Hc_diff$counter, y = just_Hc_diff$Hc,
                                       fill = sign), stat = "identity")+
-    scale_fill_manual(values = c("positive" = "green", "negative" = "red"))+
+    scale_fill_manual(values = c("positive" = "#56B4E9", "negative" = "#E69F00"))+
     geom_point(data = CDI_AG, aes(x = CDI_AG$counter, y = CDI_AG$CDI.y),
                shape = 24, size = 3, fill = "yellow")+
     geom_point(data = CDI_grid, aes(x = CDI_grid$counter, y = CDI_grid$CDI.x),
                shape = 21, size = 3, fill = "blue")+
-    facet_wrap(~ hardiness_year.x)+
-    xlab('Temperature')+
-    ylab('Days')+
+    facet_wrap(~ hardiness_year.x,scales = "free")+
+    xlab('Days')+
+    ylab('Temperature')+
     ggtitle('Predicted HC diferrence with critical days')
    
-  just_hc + theme(plot.title = element_text(size=16, face="bold"),
-                  panel.grid.major = element_blank(),
-                  panel.grid.minor = element_blank(),
-                  panel.spacing=unit(.25, "cm"),
-                  legend.title = element_text(face="plain", size=16),
-                  legend.text = element_text(size=14),
-                  legend.position = "bottom",
-                  legend.key.size = unit(.65, "cm"),
-                  strip.text = element_text(size=16, face="bold", color="black"),
-                  axis.text = element_text(face="bold", size=14, color="black"),
-                  axis.ticks = element_line(color = "black", size = .2),
-                  axis.title.x = element_text(face="bold", size=16, margin=margin(t=10, r=0, b=0, l=0), color="black"),
-                  axis.title.y = element_text(face="bold", size=16, margin=margin(t=0, r=10, b=0, l=0), color="black"))
+  just_hc <- just_hc + custom_theme()
   
+  just_hc
   
-    
+  ggsave(plot = just_hc, paste0(plot_location,"HC_difference.png"), 
+          dpi = "print", scale = 10)
    
    # This is manual work not needed good that you wrote, but there was a better way
    # for (one_year in total_years){
