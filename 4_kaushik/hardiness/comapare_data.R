@@ -6,6 +6,11 @@ library(lubridate)
 library(ggplot2)
 
 
+# Richland - row 120
+# Omak - 110
+# Wenatchee - 163
+# Walla walla -31
+
 
 
 ####################################
@@ -16,8 +21,10 @@ input_dir <- "C:/Users/Kaushik Acharya/Documents/R Scripts/i_code_in_R/4_kaushik
 
 grid_AG_compare = readRDS(paste0(input_dir,"Output_data/AG_weather/grid_AG_compare.rds"))
 
+
 dim(grid_AG_compare)
 
+head(grid_AG_compare)
 
 ####### checking for zeros in file and analysis #######
 zero_compare <- subset(grid_AG_compare, grid_AG_compare$AG_lat == 0)
@@ -30,16 +37,20 @@ dim(grid_AG_compare)
 
 # locations seperated for into vector for the for loop
 grid_AG_5 <- grid_AG_compare$Station_ID[1:5]
+grid_AG_5 <- subset (grid_AG_compare, 
+                     grid_AG_compare$Station_ID %in% c(300253, 330104, 330166, 300133))
+
+grid_AG_5 <- grid_AG_5[1]
 grid_AG_5
 
-# grid_AG
-
-for (stations in grid_AG_5){
+place <- grid_AG_5$Station_ID
+place
+for (place in grid_AG_5$Station_ID){
   
   input_AG <- readRDS("C:/Users/Kaushik Acharya/Documents/R Scripts/i_code_in_R/4_kaushik/hardiness/Output_data/AG_weather/AGweather.rds")
   
   # seperating one AGweather location 
-  input_AG <- subset(input_AG, input_AG$Station_ID == 100140)#place)
+  input_AG <- subset(input_AG, input_AG$Station_ID == place)
   dim(input_AG) 
   head(input_AG)
   
@@ -58,9 +69,10 @@ for (stations in grid_AG_5){
   grid_location <- "C:/Users/Kaushik Acharya/Documents/R Scripts/i_code_in_R/4_kaushik/hardiness/Output_data/observed/"
   
   # nearest lat long from compare table 
-  lat <- grid_AG_compare$grid_lat[1]
+  tuple_need <- subset(grid_AG_5, grid_AG_5$Station_ID == place)
+  lat <-  tuple_need$grid_lat #grid_AG_compare$grid_lat[place]
   lat
-  long <- grid_AG_compare$grid_long[1]
+  long <- tuple_need$grid_long
   long
   
   # Data concerning the nearest lat long location
@@ -80,6 +92,14 @@ for (stations in grid_AG_5){
     
     # Date of AGweather is lesser
     # Reduce the grid data to end_date
+    input_AG <- input_AG[input_AG$Date <= end_date,]
+    head(input_AG$Date,1)
+    tail(input_AG$Date,1)
+    
+    # Grid data with the dates
+    input_grid <- input_grid[input_grid$Date >= start_date & input_grid$Date <= end_date,]
+    head(input_grid$Date,1)
+    tail(input_grid$Date,1) 
     
   }else {
     print("you are fucked")
@@ -110,12 +130,12 @@ for (stations in grid_AG_5){
   
   custom_theme <- function () {
     theme_gray() %+replace%
-      theme(plot.title = element_text(size=16, face="bold"),
+      theme(plot.title = element_text(size=36, face="bold"),
             # panel.background = element_blank(),
             # panel.border = element_blank(),
             panel.spacing=unit(.25, "cm"),
             legend.title = element_text(face="plain", size=36),
-            legend.text = element_text(size=10),
+            legend.text = element_text(size=24),
             legend.position = "bottom",
             legend.key.size = unit(.65, "cm"),
             strip.text = element_text(size= 24, face="bold", color="black"),
@@ -130,18 +150,22 @@ for (stations in grid_AG_5){
   dim(input_grid)
 
   
-  ##############################################################
-  # Plots for comparision between two data
-  ##############################################################
+ 
   
   # Plot Location
   plot_location <- "C:/Users/Kaushik Acharya/Documents/R Scripts/i_code_in_R/4_kaushik/hardiness/Output_data/Plots/Comparison/"
   
-  
+  ifelse(!dir.exists(file.path(plot_location, place)), 
+         dir.create(file.path(plot_location, place)), FALSE)
   
   # comparison between the two dataframes
   dim(input_AG)
   dim(input_grid)
+  
+  
+  ##############################################################
+  # Creating the merged data frame for further use
+  ##############################################################
   
   # merging the table for difference calculation
   Merge_diff <- merge(input_grid,input_AG, by = "Date")
@@ -159,7 +183,10 @@ for (stations in grid_AG_5){
   sum(Merge_diff$CDI.x)
   sum(Merge_diff$CDI.y)
   
+  ###############################
   # plot for comparison of Tmax
+  ###############################
+  
   Max_temp_compare <- ggplot()+
     geom_line(data = input_AG, aes(x = input_AG$Date, y = input_AG$t_max,
                                    color = "AG weather"))+
@@ -170,15 +197,20 @@ for (stations in grid_AG_5){
     
     xlab('Date')+
     ylab('Temperature')+
-    ggtitle('Tmax Comparision')
+    ggtitle(paste0("Tmax Comparision - ", place))
   
-  Max_temp_compare
+  Max_temp_compare <- Max_temp_compare + custom_theme()
+  
+  # Max_temp_compare
   
   # save the plot
-  ggsave(plot = Max_temp_compare, paste0(plot_location,"Tmax_comparison.PNG"), 
-         height = 10, width = 20)
+  ggsave(plot = Max_temp_compare, paste0(plot_location,place,"/",
+                                         "Tmax_comparison.PNG"), dpi = "print", scale = 10)
   
+  ################################
   # plot for comparison of Tmin
+  ################################
+  
   Min_temp_compare <-ggplot()+
     geom_line(data = input_AG, aes(x = input_AG$Date, y = input_AG$t_min,
                                    color = "AG weather"))+
@@ -188,15 +220,20 @@ for (stations in grid_AG_5){
                                     color = "diff"))+
     xlab('Date')+
     ylab('Temperature')+
-    ggtitle('Tmin Comparision')
+    ggtitle(paste0("Tmin Comparision - ", place))
   
-  Min_temp_compare
+  Min_temp_compare <- Min_temp_compare + custom_theme()
   
   # save the plot
-  ggsave(plot = Min_temp_compare, paste0(plot_location,"Tmin_comparison.PNG"), 
-         height = 10, width = 20)
+  ggsave(plot = Min_temp_compare, paste0(plot_location,place,
+                                         "/","Tmin_comparison.PNG"), dpi = "print",
+         scale = 10)
   
+  ################################
   # plot for comaprison of Tmean
+  ###############################
+  
+  
   Mean_temp_compare <- ggplot()+
     geom_line(data = input_AG, aes(x = input_AG$Date, y = input_AG$t_mean,
                                    color = "AG weather"))+
@@ -206,38 +243,45 @@ for (stations in grid_AG_5){
                                     color = "diff"))+
     xlab('Date')+
     ylab('Temperature')+
-    ggtitle('Tmean Comparision')
+    ggtitle(paste0("Tmean Comparision - ", place))
   
-  Mean_temp_compare
+  Mean_temp_compare <- Mean_temp_compare + custom_theme()
   
   # save the plot
-  ggsave(plot = Mean_temp_compare, paste0(plot_location,"Tmean_comparison.PNG"), 
-         height = 10, width = 20)
+  ggsave(plot = Mean_temp_compare, paste0(plot_location, 
+                                          place,"/","Tmean_comparison.PNG"), 
+         dpi = "print", scale = 10)
   
+  ###########################################
   # plot for comparison of Preddicted_Hc
-  Hc_temp_compare <-  ggplot()+
-    geom_line(data = input_AG, aes(x = input_AG$Date, y = input_AG$predicted_Hc,
-                                   color = "AG weather"))+
-    geom_line(data = input_grid, aes(x = input_grid$Date, y = input_grid$predicted_Hc,
-                                     color = "grid data"))+
-    geom_col(data = Merge_diff, aes(x = Merge_diff$Date, y = Merge_diff$Hc,
-                                    color = "diff"))+
-    
-    facet_wrap(~ input_AG$hardiness_year)+
-    xlab('Date')+
-    ylab('Temperature')+
-    ggtitle('Hardiness Comparision')
+  ###########################################
   
-  Hc_temp_compare
-  
-  # save the plot
-  ggsave(plot = Hc_temp_compare, paste0(plot_location,"Hc_comparison.PNG"), 
-         height = 10, width = 20)
-  
+  # Hc_temp_compare <-  ggplot()+
+  #   geom_line(data = input_AG, aes(x = input_AG$Date, y = input_AG$predicted_Hc,
+  #                                  color = "AG weather"))+
+  #   geom_line(data = input_grid, aes(x = input_grid$Date, y = input_grid$predicted_Hc,
+  #                                    color = "grid data"))+
+  #   geom_col(data = Merge_diff, aes(x = Merge_diff$Date, y = Merge_diff$Hc,
+  #                                   color = "diff"))+
+  #   
+  #   facet_wrap(~ input_AG$hardiness_year)+
+  #   xlab('Date')+
+  #   ylab('Temperature')+
+  #   ggtitle(paste0("Hardiness Comparision - ", place))
+  # 
+  # Hc_temp_compare <- Hc_temp_compare + custom_theme()
+  # 
+  # # save the plot
+  # ggsave(plot = Hc_temp_compare, paste0(plot_location,place,
+  #                                       "/","Hc_comparison.PNG"), 
+  #        dpi = "print", scale = 10)
+  # 
   
   ############################################################
   # For the purpose of facet wrap
-  ##########################################################
+  ############################################################
+  
+  
   Merge_diff$Date <- as.Date(Merge_diff$Date, format = "%Y-%m-%d")
   
   head(Merge_diff)
@@ -249,7 +293,7 @@ for (stations in grid_AG_5){
   setDT(Merge_diff)[, counter := seq_len(.N), by=rleid(hardiness_year.x)]
   
   dim(Merge_diff)
-  length(Merge_diff$CDI.y)
+  # length(Merge_diff$CDI.y)
   
   # subset of CDI counts greater than 0
   
@@ -281,32 +325,21 @@ for (stations in grid_AG_5){
     facet_wrap(~ hardiness_year.x)+
     xlab('Date')+
     ylab('Temperature')+
-    ggtitle('Hardiness Comparision')
+    ggtitle(paste0("Hardiness Comparision - ", place))
   
-    Hc_facet <- Hc_temp_facet +  theme(plot.title = element_text(size=16, face="bold"),
-                            panel.grid.major = element_blank(),
-                            panel.grid.minor = element_blank(),
-                            panel.spacing=unit(.25, "cm"),
-                            legend.title = element_text(face="plain", size=16),
-                            legend.text = element_text(size=14),
-                            legend.position = "bottom",
-                            legend.key.size = unit(.65, "cm"),
-                            strip.text = element_text(size=16, face="bold", color="black"),
-                            axis.text = element_text(face="bold", size=14, color="black"),
-                            axis.ticks = element_line(color = "black", size = .2),
-                            axis.title.x = element_text(face="bold", size=16, margin=margin(t=10, r=0, b=0, l=0), color="black"),
-                            axis.title.y = element_text(face="bold", size=16, margin=margin(t=0, r=10, b=0, l=0), color="black"))
+  Hc_facet <- Hc_temp_facet +  custom_theme()
   
   # save the plot
-  ggsave(plot = Hc_facet, paste0(plot_location,"Hc_comparison_facet.PNG"), 
-         height = 10, width = 10)
+  ggsave(plot = Hc_facet, paste0(plot_location,place, "/",
+                                 "Hc_comparison_facet.PNG"), 
+         dpi = "print", scale = 10)
   
   
   
-  
-  
-  
+  ##################################
   # facet plot for Tmax 
+  ##################################
+  
   Max_temp_facet <-  ggplot()+
     geom_line(data = Merge_diff, aes(x = Merge_diff$counter, y = Merge_diff$t_max.x,
                                      color = "AG weather"))+
@@ -317,16 +350,19 @@ for (stations in grid_AG_5){
     facet_wrap(~ hardiness_year.x)+
     xlab('Date')+
     ylab('Temperature')+
-    ggtitle('Tmax Comparision')
+    ggtitle(paste0("Tmax Comparision facet - ", place))
   
-  Max_temp_facet
+  Max_temp_facet <- Max_temp_facet + custom_theme()
   
   # save the plot
-  ggsave(plot = Max_temp_facet, paste0(plot_location,"Max_comparison_facet.PNG"), 
-         height = 10, width = 10)
+  ggsave(plot = Max_temp_facet, paste0(plot_location,place,"/",
+                                       "Max_comparison_facet.PNG"), 
+         dpi = "print", scale = 10)
   
-  
+  ##########################
   # facet plot for Tmin
+  ##########################
+  
   Min_temp_facet <-  ggplot()+
     geom_line(data = Merge_diff, aes(x = Merge_diff$counter, y = Merge_diff$t_min.x,
                                      color = "AG weather"))+
@@ -337,15 +373,19 @@ for (stations in grid_AG_5){
     facet_wrap(~ hardiness_year.x)+
     xlab('Date')+
     ylab('Temperature')+
-    ggtitle('Tmin Comparision')
+    ggtitle(paste0("Tmin Comparision Facet - ", place))
   
-  Min_temp_facet
+  Min_temp_facet <- Min_temp_facet + custom_theme()
   
   # save the plot
-  ggsave(plot = Min_temp_facet, paste0(plot_location,"Min_comparison_facet.PNG"), 
-         height = 10, width = 10)
+  ggsave(plot = Min_temp_facet, paste0(plot_location,place,"/",
+                                       "Min_comparison_facet.PNG"), 
+         dpi = "print", scale = 10)
   
+  ###############################
   # facet plot Tmean
+  ###############################
+  
   Mean_temp_facet <-  ggplot()+
     geom_line(data = Merge_diff, aes(x = Merge_diff$counter, y = Merge_diff$t_mean.x,
                                      color = "AG weather"))+
@@ -356,50 +396,54 @@ for (stations in grid_AG_5){
     facet_wrap(~ hardiness_year.x)+
     xlab('Date')+
     ylab('Temperature')+
-    ggtitle('Tmean Comparision')
+    ggtitle(paste0("Tmean Comparision Facet - ", place))
   
-  Mean_temp_facet
+  Mean_temp_facet <- Mean_temp_facet + custom_theme()
   
   # save the plot
-  ggsave(plot = Mean_temp_facet, paste0(plot_location,"Mean_comparison_facet.PNG"), 
-         height = 10, width = 10)
+  ggsave(plot = Mean_temp_facet, paste0(plot_location, place, "/",
+                                        "Mean_comparison_facet.PNG"), 
+         dpi = "print", scale = 10)
   
+  ################################
+  # Bar plots with difference
+  ################################
   
-  # Bar plots woth difference
-  Tmax_diff<-ggplot()+
-    geom_bar(data = Merge_diff, aes(x = Merge_diff$Date, y = Merge_diff$max, 
-                                    color = "Tmax" ), stat = "identity")+
-    # geom_bar(data = Merge_diff, aes(x = Merge_diff$counter, y = Merge_diff$min,
-    #                                 color = "Tmin"), stat = "identity", alpha = 0.3, 
-    #                                       position = "dodge")+
-    xlab('Date')+
-    ylab('Temperature')+
-    ggtitle('Tmax difference')#+
-    # facet_wrap(~ hardiness_year.x)
-  
-  Tmax_diff
-  
-  Tmin_diff <- ggplot()+
-    geom_bar(data = Merge_diff, aes(x = Merge_diff$Date, y = Merge_diff$min,
-                                               color = "Tmin"), stat = "identity")+
-    xlab('Date')+
-    ylab('Temperature')+
-    ggtitle('Tmin difference')#+
-    # facet_wrap(~ hardiness_year.x)
-  
-  Tmin_diff
-  
-  library(gridExtra)
-  grid_plot <- grid.arrange(Tmax_diff,Tmin_diff,ncol = 1)
-  
-  ggplot(data = Merge_diff)+
-    grid_plot+ facet_wrap(hardiness_year.x)
-  
-  
-  # trying per year scheme
-  total_years <- unique(Merge_diff$year.x)
-  total_years
-  
+  # 
+  # Tmax_diff<-ggplot()+
+  #   geom_bar(data = Merge_diff, aes(x = Merge_diff$Date, y = Merge_diff$max, 
+  #                                   color = "Tmax" ), stat = "identity")+
+  #   # geom_bar(data = Merge_diff, aes(x = Merge_diff$counter, y = Merge_diff$min,
+  #   #                                 color = "Tmin"), stat = "identity", alpha = 0.3, 
+  #   #                                       position = "dodge")+
+  #   xlab('Date')+
+  #   ylab('Temperature')+
+  #   ggtitle('Tmax difference')#+
+  #   # facet_wrap(~ hardiness_year.x)
+  # 
+  # Tmax_diff
+  # 
+  # Tmin_diff <- ggplot()+
+  #   geom_bar(data = Merge_diff, aes(x = Merge_diff$Date, y = Merge_diff$min,
+  #                                              color = "Tmin"), stat = "identity")+
+  #   xlab('Date')+
+  #   ylab('Temperature')+
+  #   ggtitle('Tmin difference')#+
+  #   # facet_wrap(~ hardiness_year.x)
+  # 
+  # Tmin_diff
+  # 
+  # library(gridExtra)
+  # grid_plot <- grid.arrange(Tmax_diff,Tmin_diff,ncol = 1)
+  # 
+  # ggplot(data = Merge_diff)+
+  #   grid_plot+ facet_wrap(hardiness_year.x)
+  # 
+  # 
+  # # trying per year scheme
+  # total_years <- unique(Merge_diff$year.x)
+  # total_years
+  # 
   
   ###########################################################
   # Facet Data with difference comparision
@@ -418,24 +462,14 @@ for (stations in grid_AG_5){
     facet_grid( ~ hardiness_year.x ~variable, scales = "free")+
     xlab('Date')+
     ylab('Temperature')+
-    ggtitle('Comparision')
+    ggtitle(paste0("Temperature difference Comparision", place))
   
-  max_mean_mean_facet <- Multi_grid_compare + theme(plot.title = element_text(size=16, face="bold"),
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
-      panel.spacing=unit(.25, "cm"),
-      legend.title = element_text(face="plain", size=16),
-      legend.text = element_text(size=14),
-      legend.position = "bottom",
-      legend.key.size = unit(.65, "cm"),
-      strip.text = element_text(size=16, face="bold", color="black"),
-      axis.text = element_text(face="bold", size=14, color="black"),
-      axis.ticks = element_line(color = "black", size = .2),
-      axis.title.x = element_text(face="bold", size=16, margin=margin(t=10, r=0, b=0, l=0), color="black"),
-      axis.title.y = element_text(face="bold", size=16, margin=margin(t=0, r=10, b=0, l=0), color="black"))
+  max_mean_mean_facet <- Multi_grid_compare + custom_theme()
   
-  ggsave(plot = max_mean_mean_facet, paste0(plot_location,"Temperature_difference_facet_long.PNG"), 
-           height = 40 , width = 20)
+  
+  ggsave(plot = max_mean_mean_facet, paste0(plot_location, place, "/",
+                                            "Temperature_difference_facet_long.PNG"), 
+           dpi = "print", scale = 10)
     
   
   ################################################
@@ -449,30 +483,16 @@ for (stations in grid_AG_5){
     scale_fill_manual(values = c("max" = "red", "min" = "blue", "mean" = "yellow"))+
     xlab('Date')+
     ylab('Temperature')+
-    ggtitle('Area plot for temperaure difference')
+    ggtitle(paste0("Area plot for temperaure difference - ", place))
   
-  comp_area
   
   
   comp_area <- comp_area + custom_theme()
   
-  comp_area <- comp_area + theme(plot.title = element_text(size=16, face="bold"),
-                    panel.grid.major = element_blank(),
-                    panel.grid.minor = element_blank(),
-                    panel.spacing=unit(.25, "cm"),
-                    legend.title = element_text(face="plain", size=16),
-                    legend.text = element_text(size=14),
-                    legend.position = "bottom",
-                    legend.key.size = unit(.65, "cm"),
-                    strip.text = element_text(size=16, face="bold", color="black"),
-                    # axis.text = element_text(face="bold", size=14, color="black"),
-                    axis.ticks = element_line(color = "black", size = .2),
-                    axis.title.x = element_text(face="bold", size=16, margin=margin(t=10, r=0, b=0, l=0), color="black"),
-                    axis.title.y = element_text(face="bold", size=16, margin=margin(t=0, r=10, b=0, l=0), color="black"))
   
-  
-  ggsave(plot = comp_area, paste0(plot_location,"Area_plot.PNG"), 
-         height = 15 , width = 20)
+  ggsave(plot = comp_area, paste0(plot_location,place,"/",
+                                  "Area_plot.PNG"), 
+         dpi = "print", scale = 10)
   
   
   #######################################################
@@ -483,7 +503,7 @@ for (stations in grid_AG_5){
   head(Merge_diff)
   just_Hc_diff <- Merge_diff %>% select (Date, year.x, Hc, counter, hardiness_year.x)
   dim(just_Hc_diff)
-  head(just_Hc_diff, 50)
+  # head(just_Hc_diff, 50)
   
   # adding a column to check for postives and negatives
   just_Hc_diff$sign <- ifelse(just_Hc_diff$Hc >= 0, "positive", "negative")
@@ -498,7 +518,7 @@ for (stations in grid_AG_5){
   CDI_AG <- subset(CDI_AG, CDI_AG$CDI.y > 0)
   CDI_AG
   
-  head(just_Hc_diff$Hc,50)
+  # head(just_Hc_diff$Hc,50)
   
   # plot for difference of Hc with critical days
   just_hc <- ggplot()+
@@ -516,9 +536,10 @@ for (stations in grid_AG_5){
    
   just_hc <- just_hc + custom_theme()
   
-  just_hc
+  # just_hc
   
-  ggsave(plot = just_hc, paste0(plot_location,"HC_difference.png"), 
+  ggsave(plot = just_hc, paste0(plot_location,place,"/",
+                                "HC_difference.png"), 
           dpi = "print", scale = 10)
    
    # This is manual work not needed good that you wrote, but there was a better way
