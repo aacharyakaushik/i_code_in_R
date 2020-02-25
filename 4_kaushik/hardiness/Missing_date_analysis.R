@@ -1,13 +1,16 @@
 
+library(data.table)
 library(dplyr)
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+
 
 #######################################
 # Analysis of Missing dates
 #######################################
 
 missing_dates <- read.csv("C:/Users/Kaushik Acharya/Documents/R Scripts/i_code_in_R/4_kaushik/hardiness/Output_data/AG_weather/missing_dates.csv")
-
-
 
 head(missing_dates)
 dim(missing_dates)
@@ -65,45 +68,83 @@ write.csv(missing_dates_analysis,paste0(output_dir,"missing_analysis.csv"))
 ############################################
 
 
+miss_full <- read.csv(paste0(output_dir,"missing_analysis.csv"))
+head(miss_full)
 
 
-miss <- subset(missing_dates_analysis, missing_dates_analysis$yr > 2008 & 
-                 missing_dates_analysis$yr < 2016)
-dim(miss)
-unique(miss$Station_name)
+###########################################################
+# Subset the data  with mssing information greater than 3
+##########################################################
 
-head(miss)
+# miss <- subset(miss_full, miss_full$yr > 2000 & 
+                 # miss_full$yr < 2016)
+# dim(miss)
+# unique(miss$Station_name)
 
-miss_3 <- subset(miss, miss$count > 3)
-dim(miss)
-unique(miss$Station_name)
+# head(miss)
+
+miss_3 <- subset(miss_full, miss_full$count > 3)
+head(miss_3)
+dim(miss_3)
+unique(miss_3$Station_name)
 
 miss_3 <- miss_3 %>% select(Station_name,mo,yr, count)
 
-summary1<-miss_3 %>% group_by(Station_name, yr) %>% summarise(cnt = n())
-View(summary1)
-summary2<-miss_3 %>% count(Station_name, yr)
+###################################################
+# Summary from 2000
+###################################################
 
-wideformsummary<-dcast(summary1, Station_name ~ yr)
-View(wideformsummary)
-View(summary2)
-miss_3$ count_month <- 1
+summary_2000 <- subset(miss_3, miss_3$yr > 2000 & miss_3$yr < 2016)
 
-
-reshape(summary1, idvar = "Station_name", timevar = yr, direction = "wide")
+summary_2000<-summary_2000 %>% group_by(Station_name, yr) %>% summarise(cnt = n())
+View(summary_2000)
 
 
-head(miss_3)
+wideformsummary_2000<-dcast(summary_2000, Station_name ~ yr)
+View(wideformsummary_2000)
+length(unique(wideformsummary_2000$Station_name))
+
+### The number of stations with months greater 
+### than 3 critical events per month is 75
+
+#####################################################
+# Summary from the begining
+#####################################################
+
+summary <- miss_3 %>% group_by(Station_name, yr) %>% summarise(cnt = n())
+view(summary)
+
+wideformsummary <- dcast(summary, Station_name ~ yr)
+length(unique(wideformsummary$Station_name))
+
+### The number of stations with months greater 
+### than 3 critical events per month is 98
+
+####################################################
+# Summary from 2005
+####################################################
+
+summary_2008 <- subset(miss_3, miss_3$yr > 2008 & miss_3$yr < 2016)
+
+summary_2008 <-summary_2008 %>% group_by(Station_name, yr) %>% summarise(cnt = n())
+View(summary_2008)
+
+
+wideformsummary_2008 <-dcast(summary_2008, Station_name ~ yr)
+View(wideformsummary_2008)
+length(unique(wideformsummary_2008$Station_name))
+
+
+### The number of stations with months greater 
+### than 3 critical events per month is 10
+
+
 
 # miss_3 <- data.frame(miss_3, value = TRUE)
 
-names(miss_3)
-View(miss_3)
-miss_3$date <- as.Date(miss_3$date, format = "%Y-%m-%d")
-miss_3[, .N, by = year(date)] 
 
 
-  locations <- unique(missing_dates_analysis$Station_name)[10:20]
+locations <- unique(missing_dates_analysis$Station_name)[10:20]
 locations
 
 missing_dates_sub <- subset(missing_dates_analysis, 
