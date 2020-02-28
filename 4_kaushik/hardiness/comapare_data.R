@@ -40,7 +40,7 @@ grid_AG_compare <- subset(grid_AG_compare, grid_AG_compare$AG_lat != 0)
 dim(grid_AG_compare)
 
 # locations seperated for into vector for the for loop
-# grid_AG_5 <- grid_AG_compare$Station_ID[1:5]
+# grid_AG_5 <- grid_AG_compare[4,]
 # grid_AG_5 <- subset (grid_AG_compare, grid_AG_compare$Station_ID %in% c(300253, 330104,
                                                                         # 330166, 300133))
 
@@ -70,6 +70,15 @@ for (place in grid_AG_compare$Station_ID){
   start_date
   end_date <- tail(input_AG$Date, 1)
   end_date
+  
+  check_date <- as.Date("2015-08-01", format = "%Y-%m-%d")
+  check_date
+  
+  # if date is not present skip the location
+  if (start_date > "2015-08-01"){
+    print("Not Enough Data")
+    next
+  }
   
   
   # location of grid data
