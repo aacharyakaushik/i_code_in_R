@@ -650,9 +650,10 @@ for (place in grid_AG_compare$Station_ID){
   comp_Merge_melt <- as.data.frame(comp_Merge_melt)
   head(comp_Merge_melt)
   
-  density_plot <- ggplot(comp_Merge_melt, aes(x = value, fill = factor(variable)))+
-    geom_density(position = "stack")+
-    scale_fill_manual(values = c("Tmax" = "red", "Tmin" = "blue", "Tmean" = "yellow"))+
+  density_plot <- ggplot(comp_Merge_melt, aes(x = value, color = factor(variable), size = 3))+
+    geom_density()+
+    geom_vline(aes(xintercept = mean(value)),color = "black", linetype = "dashed", size = 3 )+
+    scale_color_manual(values = c("Tmax" = "red", "Tmin" = "blue", "Tmean" = "yellow"))+
     facet_wrap( ~ hardiness_year.x, scales = "free")+
     ylab('Density')+
     xlab('Temperature difference (\u00B0C)')+
@@ -660,8 +661,31 @@ for (place in grid_AG_compare$Station_ID){
     
   density_plot <- density_plot + custom_theme()  
   
-  ggsave(plot = density_plot, paste0(plot_location,grid_location,"/",
+  density_plot
+  
+  ggsave(plot = density_plot, paste0(plot_location, grid_location, "/",
                                        "Density_stack.PNG"), dpi = "print", scale = 10)
+  
+  ############################################
+  # Density as stack
+  ############################################
+  
+  density_stack <- ggplot(comp_Merge_melt, aes(x = value, color = factor(variable), size = 3))+
+    geom_density(position = "stack")+
+    geom_vline(aes(xintercept = mean(value)),color = "black", linetype = "dashed", size = 3 )+
+    scale_color_manual(values = c("Tmax" = "red", "Tmin" = "blue", "Tmean" = "yellow"))+
+    facet_wrap( ~ hardiness_year.x, scales = "free")+
+    ylab('Density')+
+    xlab('Temperature difference (\u00B0C)')+
+    ggtitle(paste0('Density Stack of Temperature difference - ', grid_location," VS ",Station_name))
+  
+  density_stack <- density_plot + custom_theme()  
+  
+  density_stack
+  
+  ggsave(plot = density_stack, paste0(plot_location, grid_location, "/",
+                                     "Density_stack.PNG"), dpi = "print", scale = 10)
+  
   
   
   
