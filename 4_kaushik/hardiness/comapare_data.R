@@ -16,16 +16,16 @@ library(ggplot2)
 # read the lat long comaprer file
 ####################################
 
-input_dir <- "/home/kraghavendra/hardiness/parameters/"
-# input_dir <- "C:/Users/Kaushik Acharya/Documents/R Scripts/i_code_in_R/4_kaushik/hardiness/"
+# input_dir <- "/home/kraghavendra/hardiness/parameters/"
+input_dir <- "C:/Users/Kaushik Acharya/Documents/R Scripts/i_code_in_R/4_kaushik/hardiness/"
 
-grid_AG_compare <- readRDS(paste0(input_dir, "/grid_AG_compare.rds"))
-# grid_AG_compare = readRDS(paste0(input_dir,"Output_data/AG_weather/grid_AG_compare.rds"))
+# grid_AG_compare <- readRDS(paste0(input_dir, "/grid_AG_compare.rds"))
+grid_AG_compare = readRDS(paste0(input_dir,"Output_data/AG_weather/grid_AG_compare.rds"))
 
 # reading the AG weather file
 
-AG_station_name <- read.csv(paste0(input_dir,"AWN_T_P_DAILY.csv"))
-# AG_station_name <- read.csv("C:/Users/Kaushik Acharya/Documents/R Scripts/i_code_in_R/4_kaushik/hardiness/input_data/AWN_T_P_DAILY/AWN_T_P_DAILY.csv")
+# AG_station_name <- read.csv(paste0(input_dir,"AWN_T_P_DAILY.csv"))
+AG_station_name <- read.csv("C:/Users/Kaushik Acharya/Documents/R Scripts/i_code_in_R/4_kaushik/hardiness/input_data/AWN_T_P_DAILY/AWN_T_P_DAILY.csv")
 
 dim(grid_AG_compare)
 head(grid_AG_compare)
@@ -41,19 +41,19 @@ dim(grid_AG_compare)
 
 # locations seperated for into vector for the for loop
 # grid_AG_5 <- grid_AG_compare[4,]
-# grid_AG_5 <- subset (grid_AG_compare, grid_AG_compare$Station_ID %in% c(300253, 330104,
-                                                                        # 330166, 300133))
+grid_AG_5 <- subset (grid_AG_compare, grid_AG_compare$Station_ID %in% c(300253, 330104,
+                                                                        330166, 300133))
 
-# grid_AG_5 <- grid_AG_5[1]
-# grid_AG_5
+grid_AG_5 <- grid_AG_5[1]
+grid_AG_5
 
-# place <- grid_AG_5$Station_ID
-# place
+place <- grid_AG_5$Station_ID
+place
 
 for (place in grid_AG_compare$Station_ID){
     
-  input_AG <- readRDS(paste0(input_dir,"AGweather.rds"))
-  # input_AG <- readRDS("C:/Users/Kaushik Acharya/Documents/R Scripts/i_code_in_R/4_kaushik/hardiness/Output_data/AG_weather/AGweather.rds")
+  # input_AG <- readRDS(paste0(input_dir,"AGweather.rds"))
+  input_AG <- readRDS("C:/Users/Kaushik Acharya/Documents/R Scripts/i_code_in_R/4_kaushik/hardiness/Output_data/AG_weather/AGweather.rds")
   
   
   # seperating one AGweather location 
@@ -82,8 +82,8 @@ for (place in grid_AG_compare$Station_ID){
   
   
   # location of grid data
-  grid_location <- "/data/hydro/users/kraghavendra/hardiness/output_data/observed/"
-  # grid_location <- "C:/Users/Kaushik Acharya/Documents/R Scripts/i_code_in_R/4_kaushik/hardiness/Output_data/observed/"
+  # grid_location <- "/data/hydro/users/kraghavendra/hardiness/output_data/observed/"
+  grid_location <- "C:/Users/Kaushik Acharya/Documents/R Scripts/i_code_in_R/4_kaushik/hardiness/Output_data/observed/"
   
   # nearest lat long from compare table 
   tuple_need <- subset(grid_AG_compare, grid_AG_compare$Station_ID == place)
@@ -173,8 +173,8 @@ for (place in grid_AG_compare$Station_ID){
   dim(input_grid)
 
   # Plot Location
-  plot_location <- "/data/hydro/users/kraghavendra/hardiness/output_data/Plots/Comparision/observed/"
-  # plot_location <- "C:/Users/Kaushik Acharya/Documents/R Scripts/i_code_in_R/4_kaushik/hardiness/Output_data/Plots/Comparison/"
+  # plot_location <- "/data/hydro/users/kraghavendra/hardiness/output_data/Plots/Comparision/observed/"
+  plot_location <- "C:/Users/Kaushik Acharya/Documents/R Scripts/i_code_in_R/4_kaushik/hardiness/Output_data/Plots/Comparison/"
   
   # checking if the directory is present , if not create a folder
   ifelse(!dir.exists(file.path(plot_location, grid_location)), 
@@ -686,7 +686,30 @@ for (place in grid_AG_compare$Station_ID){
   ggsave(plot = density_stack, paste0(plot_location, grid_location, "/",
                                      "Density_stack.PNG"), dpi = "print", scale = 10)
   
+  #######################################
+  # Density Plot for hardiness gradation
+  #######################################
   
+  names(Merge_diff)
+  
+  
+  gradation_hard <- as.data.frame(Merge_diff %>% select(Date, Hc, predicted_Hc.x, predicted_Hc.y,
+                                           hardiness_year.x))
+  head(gradation_hard)      
+  dim(gradation_hard)
+  
+  dens <- density(gradation_hard$Hc)
+  df_dens <- data.frame(x=dens$x, y=dens$y)
+  probs <- c(0.1, 0.25, 0.5, 0.75, 0.9)
+  quantiles <- quantile(gradation_hard$Hc, prob=probs)
+  df_dens$quant <- factor(findInterval(df_dens$x,quantiles))
+  
+  ggplot(data = gradation_hard, aes(x = Hc))+
+    geom_density()+
+    geom_ribbon(aes(ymin=, ymax = y, fill = quant))+
+    scale_x_continuous(breaks=quantiles)+ 
+    scale_fill_brewer(guide="none")+
+    facet_wrap(~ hardiness_year.x)
   
   
   # geom_density(as.data.frame(Merge_diff), aes(x = min))
