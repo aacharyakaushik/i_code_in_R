@@ -713,21 +713,26 @@ for (place in grid_AG_compare$Station_ID){
     # geom_ribbon(aes(ymin=, ymax = y, fill = quant))+
     # scale_x_continuous(breaks=quantiles)+ 
     # scale_fill_brewer(guide="none")+
-    facet_wrap(~ hardiness_year.x, scales = "free")
+    facet_wrap(~ hardiness_year.x, scales = "free")+
+    xlab('Cold hardiness difference')+
+    ggtitle(paste0('Density Plot by year', grid_location," VS ",Station_name))
+  
   
   HC_facet_stack_yr <- HC_facet_stack + custom_theme()
   
   ggsave(plot = HC_facet_stack_yr, paste0(plot_location, grid_location, "/",
                                       "Density_HC_stack.PNG"), dpi = "print", scale = 10)
   
-  
+  # plot by month
   HC_facet_stack_mon <- ggplot(data = gradation_hard, aes(x = Hc, fill = factor(hardiness_year.x)))+
     geom_density(position = "stack")+
     geom_vline(aes(xintercept = 0),color = "black", linetype = "dashed", size = 2 )+
     # geom_ribbon(aes(ymin=, ymax = y, fill = quant))+
     # scale_x_continuous(breaks=quantiles)+ 
     # scale_fill_brewer(guide="none")+
-    facet_wrap(~ mon, scales = "free")
+    facet_wrap(~ mon, scales = "free")+
+    xlab('Cold hardiness difference')+
+    ggtitle(paste0('Density Plot by month', grid_location," VS ",Station_name))
   
   HC_facet_stack_mon <- HC_facet_stack_mon + custom_theme()
   
@@ -735,47 +740,93 @@ for (place in grid_AG_compare$Station_ID){
                                           "Density_HC_stack_mon.PNG"), dpi = "print", scale = 10)
   
   
-  # geom_density(as.data.frame(Merge_diff), aes(x = min))
+  ##############################################
+  # Season wise Density
+  ##############################################
   
-  # This is manual work not needed good that you wrote, but there was a better way
-   # for (one_year in total_years){
-   #   one_year_data <- subset(Merge_diff, Merge_diff$year.x == one_year)
-   #   print(dim(one_year_data))
-   #   
-   #   Tmax_one <- ggplot()+
-   #     geom_bar(data = one_year_data, aes(x = one_year_data$counter, y = one_year_data$max,
-   #                                     color = "Tmax"), stat = "identity")+
-   #     xlab('Date')+
-   #     ylim(-15,15)+
-   #     ylab('Temperature')
-   #     # ggtitle('Tmin difference')
-   #   
-   #   Tmin_one <- ggplot()+
-   #     geom_bar(data = one_year_data, aes(x = one_year_data$counter, y = one_year_data$min,
-   #                                        color = "Tmin"), stat = "identity")+
-   #     xlab('Date')+
-   #     ylim(-15,15)+
-   #     ylab('Temperature')
-   #     # ggtitle('Tmin difference')
-   #   
-   #   Tmean_one <- ggplot()+
-   #     geom_bar(data = one_year_data, aes(x = one_year_data$counter, y = one_year_data$mean,
-   #                                        color = "Tmean"), stat = "identity")+
-   #     xlab('Date')+
-   #     ylim(-15,15)+
-   #     ylab('Temperature')
-   #     
-   #     grid_one <- grid.arrange(Tmax_one,Tmin_one,Tmean_one, ncol = 1)
-   #     # ggsave(output_dir)
-   #     
-   #     ggsave (grid_one, file = paste0(plot_location, one_year, ".png"),
-   #             height = 10, width = 8)
-   #    
-   #   
-   #     
-   # }
-   # grid_one
-   
+  names(gradation_hard)
+  sapply(gradation_hard, class)
+  head(gradation_hard)
+  
+  gradation_hard <- gradation_hard %>% mutate(season= 
+                                                ifelse(mon %in% c("09","10","11"), "Fall",
+                                                ifelse(mon %in% c("12","01","02"), "Winter",
+                                                ifelse(mon %in% c("03","04","05"), "Spring", "Error"))))
+  
+  # checking years with less than a years data, so as to not plot
+  count_check <- gradation_hard %>% count(hardiness_year.x)
+  count_check <- subset(count_check, count_check$n < 250)
+  count_check <- count_check$hardiness_year.x
+  count_check
+  
+  # selecting dataframe with only full data for year
+  gradation_hard <- gradation_hard[!gradation_hard$hardiness_year.x %in% count_check,]
+  dim(gradation_hard)
+  
+  #some values of error present
+  gradation_hard <- gradation_hard[!gradation_hard$season == "Error",]
+    
+    
+  HC_facet_season <- ggplot(data = gradation_hard, aes(x = Hc, fill = factor(season)))+
+    geom_density(position = "stack")+
+    geom_vline(aes(xintercept = 0),color = "black", linetype = "dashed", size = 2 )+
+    # geom_ribbon(aes(ymin=, ymax = y, fill = quant))+
+    # scale_x_continuous(breaks=quantiles)+ 
+    # scale_fill_brewer(guide="none")+
+    facet_wrap(~hardiness_year.x ~ season,scales= "free")+
+    xlab('Cold hardiness difference')+
+    # scale_y_discrete(limits=c(0.5,1))+
+    ggtitle(paste0('Density Plot by season', grid_location," VS ",Station_name))
+  
+  HC_facet_season <- HC_facet_season + custom_theme()
+  
+  ggsave(plot = HC_facet_season, paste0(plot_location, grid_location, "/",
+                                           "Density_HC_season.PNG"), dpi = "print", scale = 10)
+  
+  #####################################
+  # HC season Stack
+  ####################################
+  
+  HC_facet_season_stack <- ggplot(data = gradation_hard, aes(x = Hc, fill = factor(season)))+
+    geom_density(position = "stack")+
+    geom_vline(aes(xintercept = 0),color = "black", linetype = "dashed", size = 2 )+
+    # geom_ribbon(aes(ymin=, ymax = y, fill = quant))+
+    # scale_x_continuous(breaks=quantiles)+ 
+    # scale_fill_brewer(guide="none")+
+    facet_wrap(~hardiness_year.x,scales= "free")+
+    xlab('Cold hardiness difference')+
+    # scale_y_discrete(limits=c(0.5,1))+
+    ggtitle(paste0('Density Plot by season Stack - ', grid_location," VS ",Station_name))
+  
+  HC_facet_season_stack <- HC_facet_season_stack + custom_theme()
+  
+  ggsave(plot = HC_facet_season_stack, paste0(plot_location, grid_location, "/",
+                                        "Density_HC_season_stack.PNG"), dpi = "print", scale = 10)
+  
+
+  
+  
+  ###############################################
+  # Creating magnitude file for further analysis
+  ###############################################
+  names(Merge_diff)
+  
+  magnitude_data <- Merge_diff %>% select(Date, Tmax, Tmin, Tmean, Hc, counter)
+  head(magnitude_data)
+  
+  magnitude_data <- magnitude_data[, max_diff:=pmax(Tmax, Tmin)]
+  
+  magnitude_data <- magnitude_data[, which_diff := colnames(.SD)[max.col(.SD, ties.method="first")], 
+                                   .SDcols = c("Tmax", "Tmin")]
+
+  
+  magnitude_data$sign <- ifelse(magnitude_data$max_diff >= 0, "positive", "negative")
+  
+  print(plot_location)
+  write.csv(magnitude_data, file = paste0(plot_location, grid_location,"/",
+                                          "Magnitude_",grid_location,".csv"))
+  
+  
 
   }
 
