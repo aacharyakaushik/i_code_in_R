@@ -11,6 +11,7 @@ library(ggplot2)
 # Omak - 110
 # Wenatchee - 163
 # Walla walla -31
+#             -123
 
 ####################################
 # read the lat long comaprer file
@@ -41,7 +42,7 @@ dim(grid_AG_compare)
 
 # locations seperated for into vector for the for loop
 # grid_AG_5 <- grid_AG_compare[4,]
-grid_AG_5 <- subset (grid_AG_compare, grid_AG_compare$Station_ID %in% c(300253, 330104,
+grid_AG_5 <- subset (grid_AG_compare, grid_AG_compare$Station_ID %in% c(300021, 300253, 330104,
                                                                         330166, 300133))
 
 grid_AG_5 <- grid_AG_5[1]
@@ -274,31 +275,7 @@ for (place in grid_AG_compare$Station_ID){
                                           "/","Tmean_comparison.PNG"), 
          dpi = "print", scale = 10)
   
-  ###########################################
-  # plot for comparison of Preddicted_Hc
-  ###########################################
-  
-  # Hc_temp_compare <-  ggplot()+
-  #   geom_line(data = input_AG, aes(x = input_AG$Date, y = input_AG$predicted_Hc,
-  #                                  color = "AG weather"))+
-  #   geom_line(data = input_grid, aes(x = input_grid$Date, y = input_grid$predicted_Hc,
-  #                                    color = "grid data"))+
-  #   geom_col(data = Merge_diff, aes(x = Merge_diff$Date, y = Merge_diff$Hc,
-  #                                   color = "diff"))+
-  #   
-  #   facet_wrap(~ input_AG$hardiness_year)+
-  #   xlab('Date')+
-  #   ylab('Temperature')+
-  #   ggtitle(paste0("Hardiness Comparision - ", place))
-  # 
-  # Hc_temp_compare <- Hc_temp_compare + custom_theme()
-  # 
-  # # save the plot
-  # ggsave(plot = Hc_temp_compare, paste0(plot_location,place,
-  #                                       "/","Hc_comparison.PNG"), 
-  #        dpi = "print", scale = 10)
-  # 
-  
+ 
   ############################################################
   # For the purpose of facet wrap
   ############################################################
@@ -334,9 +311,9 @@ for (place in grid_AG_compare$Station_ID){
   # facet plot for hardiness
   Hc_temp_facet <-  ggplot()+
     geom_line(data = Merge_diff, aes(x = Merge_diff$counter, y = Merge_diff$predicted_Hc.x,
-                                   color = "AG weather"))+
+                                   color = "AG weather"),size =2)+
     geom_line(data = Merge_diff, aes(x = Merge_diff$counter, y = Merge_diff$predicted_Hc.y,
-                                     color = "grid data"))+
+                                     color = "grid data"), size = 2)+
     geom_col(data = Merge_diff, aes(x = Merge_diff$counter, y = Merge_diff$Hc,
                                     color = "diff"))+
     geom_point(data = Merge_count_AG, aes(x = Merge_count_AG$counter, y = Merge_count_AG$CDI.y),
@@ -366,9 +343,9 @@ for (place in grid_AG_compare$Station_ID){
   
   Max_temp_facet <-  ggplot()+
     geom_line(data = Merge_diff, aes(x = Merge_diff$counter, y = Merge_diff$t_max.x,
-                                     color = "AG weather"))+
+                                     color = "AG weather"), size = 1)+
     geom_line(data = Merge_diff, aes(x = Merge_diff$counter, y = Merge_diff$t_max.y,
-                                     color = "grid data"))+
+                                     color = "grid data"), size = 1)+
     geom_col(data = Merge_diff, aes(x = Merge_diff$counter, y = Merge_diff$Tmax,
                                     color = "diff"))+
     scale_x_discrete(breaks = c(0,100,200),
@@ -392,9 +369,9 @@ for (place in grid_AG_compare$Station_ID){
   
   Min_temp_facet <-  ggplot()+
     geom_line(data = Merge_diff, aes(x = Merge_diff$counter, y = Merge_diff$t_min.x,
-                                     color = "AG weather"))+
+                                     color = "AG weather"), size = 1)+
     geom_line(data = Merge_diff, aes(x = Merge_diff$counter, y = Merge_diff$t_min.y,
-                                     color = "grid data"))+
+                                     color = "grid data"), size = 1)+
     geom_col(data = Merge_diff, aes(x = Merge_diff$counter, y = Merge_diff$Tmin,
                                     color = "diff"))+
     scale_x_discrete(breaks = c(0,100,200),
@@ -418,9 +395,9 @@ for (place in grid_AG_compare$Station_ID){
   
   Mean_temp_facet <-  ggplot()+
     geom_line(data = Merge_diff, aes(x = Merge_diff$counter, y = Merge_diff$t_mean.x,
-                                     color = "AG weather"))+
+                                     color = "AG weather"), size = 1)+
     geom_line(data = Merge_diff, aes(x = Merge_diff$counter, y = Merge_diff$t_mean.y,
-                                     color = "grid data"))+
+                                     color = "grid data"), size = 1)+
     geom_col(data = Merge_diff, aes(x = Merge_diff$counter, y = Merge_diff$Tmean,
                                     color = "diff"))+
     scale_x_discrete(breaks = c(0,100,200),
@@ -438,45 +415,6 @@ for (place in grid_AG_compare$Station_ID){
                                         "Tmean_comparison_facet.PNG"), 
          dpi = "print", scale = 10)
   
-  ################################
-  # Bar plots with difference
-  ################################
-  
-  # 
-  # Tmax_diff<-ggplot()+
-  #   geom_bar(data = Merge_diff, aes(x = Merge_diff$Date, y = Merge_diff$max, 
-  #                                   color = "Tmax" ), stat = "identity")+
-  #   # geom_bar(data = Merge_diff, aes(x = Merge_diff$counter, y = Merge_diff$min,
-  #   #                                 color = "Tmin"), stat = "identity", alpha = 0.3, 
-  #   #                                       position = "dodge")+
-  #   xlab('Date')+
-  #   ylab('Temperature')+
-  #   ggtitle('Tmax difference')#+
-  #   # facet_wrap(~ hardiness_year.x)
-  # 
-  # Tmax_diff
-  # 
-  # Tmin_diff <- ggplot()+
-  #   geom_bar(data = Merge_diff, aes(x = Merge_diff$Date, y = Merge_diff$min,
-  #                                              color = "Tmin"), stat = "identity")+
-  #   xlab('Date')+
-  #   ylab('Temperature')+
-  #   ggtitle('Tmin difference')#+
-  #   # facet_wrap(~ hardiness_year.x)
-  # 
-  # Tmin_diff
-  # 
-  # library(gridExtra)
-  # grid_plot <- grid.arrange(Tmax_diff,Tmin_diff,ncol = 1)
-  # 
-  # ggplot(data = Merge_diff)+
-  #   grid_plot+ facet_wrap(hardiness_year.x)
-  # 
-  # 
-  # # trying per year scheme
-  # total_years <- unique(Merge_diff$year.x)
-  # total_years
-  # 
   
   ###########################################################
   # Facet Data with difference comparision
@@ -609,9 +547,9 @@ for (place in grid_AG_compare$Station_ID){
   
   comp_grid_tmin<- ggplot()+
     geom_line(data = Merge_diff, aes(x = Merge_diff$counter,y = Merge_diff$predicted_Hc.x, 
-                                        color = "Grid_data"))+
+                                        color = "Grid_data"),size = 2)+
     geom_line(data = Merge_diff, aes(x = Merge_diff$counter, y= Merge_diff$predicted_Hc.y,
-                                     color = "AG_data"))+
+                                     color = "AG_data"), size = 2)+
     geom_point(data = comp_grid_bar, aes(x = comp_grid_bar$counter, 
                                        y = comp_grid_bar$t_min.x),
                shape = 21, size = 3, fill = "blue")+
@@ -650,9 +588,9 @@ for (place in grid_AG_compare$Station_ID){
   comp_Merge_melt <- as.data.frame(comp_Merge_melt)
   head(comp_Merge_melt)
   
-  density_plot <- ggplot(comp_Merge_melt, aes(x = value, color = factor(variable), size = 3))+
+  density_plot <- ggplot(comp_Merge_melt, aes(x = value, color = factor(variable), size = 2))+
     geom_density()+
-    geom_vline(aes(xintercept = mean(value)),color = "black", linetype = "dashed", size = 3 )+
+    geom_vline(aes(xintercept = mean(value)),color = "black", linetype = "dashed")+
     scale_color_manual(values = c("Tmax" = "red", "Tmin" = "blue", "Tmean" = "yellow"))+
     facet_wrap( ~ hardiness_year.x, scales = "free")+
     ylab('Density')+
@@ -661,30 +599,30 @@ for (place in grid_AG_compare$Station_ID){
     
   density_plot <- density_plot + custom_theme()  
   
-  density_plot
+  # density_plot
   
   ggsave(plot = density_plot, paste0(plot_location, grid_location, "/",
-                                       "Density_stack.PNG"), dpi = "print", scale = 10)
+                                       "Density_Temperature_diff.PNG"), dpi = "print", scale = 10)
   
   ############################################
   # Density as stack
   ############################################
   
-  density_stack <- ggplot(comp_Merge_melt, aes(x = value, color = factor(variable), size = 2))+
+  density_stack <- ggplot(comp_Merge_melt, aes(x = value, fill = factor(variable)))+
     geom_density(position = "stack")+
-    geom_vline(aes(xintercept = 0),color = "black", linetype = "dashed", size = 2 )+
-    scale_color_manual(values = c("Tmax" = "red", "Tmin" = "blue", "Tmean" = "yellow"))+
+    geom_vline(aes(xintercept = 0),color = "black", linetype = "dashed")+
+    scale_fill_manual(values = c("Tmax" = "red", "Tmin" = "blue", "Tmean" = "yellow"))+
     facet_wrap( ~ hardiness_year.x, scales = "free")+
     ylab('Density')+
     xlab('Temperature difference (\u00B0C)')+
     ggtitle(paste0('Density Stack of Temperature difference - ', grid_location," VS ",Station_name))
   
-  density_stack <- density_plot + custom_theme()  
+  density_stack <- density_stack + custom_theme()  
   
-  density_stack
+  # density_stack
   
   ggsave(plot = density_stack, paste0(plot_location, grid_location, "/",
-                                     "Density_stack.PNG"), dpi = "print", scale = 10)
+                                     "Density_stack_temp_diff.PNG"), dpi = "print", scale = 10)
   
   #######################################
   # Density Plot for hardiness gradation
@@ -701,12 +639,6 @@ for (place in grid_AG_compare$Station_ID){
   gradation_hard$mon <- format(as.Date(gradation_hard$Date), "%m")
   
   
-  # dens <- density(gradation_hard$Hc)
-  # df_dens <- data.frame(x=dens$x, y=dens$y)
-  # probs <- c(0.1, 0.25, 0.5, 0.75, 0.9)
-  # quantiles <- quantile(gradation_hard$Hc, prob=probs)
-  # df_dens$quant <- factor(findInterval(df_dens$x,quantiles))
-  
   HC_facet_stack_yr <- ggplot(data = gradation_hard, aes(x = Hc, fill = factor(mon)))+
     geom_density(position = "stack")+
     geom_vline(aes(xintercept = 0),color = "black", linetype = "dashed", size = 2 )+
@@ -721,9 +653,34 @@ for (place in grid_AG_compare$Station_ID){
   HC_facet_stack_yr <- HC_facet_stack + custom_theme()
   
   ggsave(plot = HC_facet_stack_yr, paste0(plot_location, grid_location, "/",
-                                      "Density_HC_stack.PNG"), dpi = "print", scale = 10)
-  
+                                      "Density_HC_stack_yr.PNG"), dpi = "print", scale = 10)
+  #######################################
   # plot by month
+  #######################################
+  names(gradation_hard)
+  sapply(gradation_hard, class)
+  head(gradation_hard)
+  
+  gradation_hard <- gradation_hard %>% mutate(season= 
+                                                ifelse(mon %in% c("09","10","11"), "Fall",
+                                                       ifelse(mon %in% c("12","01","02"), "Winter",
+                                                              ifelse(mon %in% c("03","04","05"), "Spring", "Error"))))
+  
+  # checking years with less than a years data, so as to not plot
+  count_check <- gradation_hard %>% count(hardiness_year.x)
+  count_check <- subset(count_check, count_check$n < 250)
+  count_check <- count_check$hardiness_year.x
+  count_check
+  
+  # selecting dataframe with only full data for year
+  gradation_hard <- gradation_hard[!gradation_hard$hardiness_year.x %in% count_check,]
+  dim(gradation_hard)
+  
+  #some values of error present
+  gradation_hard <- gradation_hard[!gradation_hard$season == "Error",]
+  
+  
+  
   HC_facet_stack_mon <- ggplot(data = gradation_hard, aes(x = Hc, fill = factor(hardiness_year.x)))+
     geom_density(position = "stack")+
     geom_vline(aes(xintercept = 0),color = "black", linetype = "dashed", size = 2 )+
@@ -744,29 +701,6 @@ for (place in grid_AG_compare$Station_ID){
   # Season wise Density
   ##############################################
   
-  names(gradation_hard)
-  sapply(gradation_hard, class)
-  head(gradation_hard)
-  
-  gradation_hard <- gradation_hard %>% mutate(season= 
-                                                ifelse(mon %in% c("09","10","11"), "Fall",
-                                                ifelse(mon %in% c("12","01","02"), "Winter",
-                                                ifelse(mon %in% c("03","04","05"), "Spring", "Error"))))
-  
-  # checking years with less than a years data, so as to not plot
-  count_check <- gradation_hard %>% count(hardiness_year.x)
-  count_check <- subset(count_check, count_check$n < 250)
-  count_check <- count_check$hardiness_year.x
-  count_check
-  
-  # selecting dataframe with only full data for year
-  gradation_hard <- gradation_hard[!gradation_hard$hardiness_year.x %in% count_check,]
-  dim(gradation_hard)
-  
-  #some values of error present
-  gradation_hard <- gradation_hard[!gradation_hard$season == "Error",]
-    
-    
   HC_facet_season <- ggplot(data = gradation_hard, aes(x = Hc, fill = factor(season)))+
     geom_density(position = "stack")+
     geom_vline(aes(xintercept = 0),color = "black", linetype = "dashed", size = 2 )+
@@ -803,8 +737,25 @@ for (place in grid_AG_compare$Station_ID){
   ggsave(plot = HC_facet_season_stack, paste0(plot_location, grid_location, "/",
                                         "Density_HC_season_stack.PNG"), dpi = "print", scale = 10)
   
-
+  #########################################
+  # Every year every month
+  ########################################
   
+  HC_facet_month_yr <- ggplot(data = gradation_hard, aes(x = Hc, fill = factor(mon)))+
+    geom_density(position = "stack")+
+    geom_vline(aes(xintercept = 0),color = "black", linetype = "dashed", size = 2 )+
+    # geom_ribbon(aes(ymin=, ymax = y, fill = quant))+
+    # scale_x_continuous(breaks=quantiles)+ 
+    # scale_fill_brewer(guide="none")+
+    facet_wrap(~hardiness_year.x ~mon,scales= "free")+
+    xlab('Cold hardiness difference')+
+    # scale_y_discrete(limits=c(0.5,1))+
+    ggtitle(paste0('Density Plot by season Stack - ', grid_location," VS ",Station_name))
+  
+  HC_facet_month_yr <- HC_facet_month_yr + custom_theme()
+  
+  ggsave(plot = HC_facet_month_yr, paste0(plot_location, grid_location, "/",
+                                              "Density_HC_mon_yr.PNG"), dpi = "print", scale = 10)
   
   ###############################################
   # Creating magnitude file for further analysis
