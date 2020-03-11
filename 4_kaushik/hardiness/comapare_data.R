@@ -670,9 +670,9 @@ for (place in grid_AG_compare$Station_ID){
   # Density as stack
   ############################################
   
-  density_stack <- ggplot(comp_Merge_melt, aes(x = value, color = factor(variable), size = 3))+
+  density_stack <- ggplot(comp_Merge_melt, aes(x = value, color = factor(variable), size = 2))+
     geom_density(position = "stack")+
-    geom_vline(aes(xintercept = mean(value)),color = "black", linetype = "dashed", size = 3 )+
+    geom_vline(aes(xintercept = 0),color = "black", linetype = "dashed", size = 2 )+
     scale_color_manual(values = c("Tmax" = "red", "Tmin" = "blue", "Tmean" = "yellow"))+
     facet_wrap( ~ hardiness_year.x, scales = "free")+
     ylab('Density')+
@@ -698,18 +698,41 @@ for (place in grid_AG_compare$Station_ID){
   head(gradation_hard)      
   dim(gradation_hard)
   
-  dens <- density(gradation_hard$Hc)
-  df_dens <- data.frame(x=dens$x, y=dens$y)
-  probs <- c(0.1, 0.25, 0.5, 0.75, 0.9)
-  quantiles <- quantile(gradation_hard$Hc, prob=probs)
-  df_dens$quant <- factor(findInterval(df_dens$x,quantiles))
+  gradation_hard$mon <- format(as.Date(gradation_hard$Date), "%m")
   
-  ggplot(data = gradation_hard, aes(x = Hc))+
-    geom_density()+
-    geom_ribbon(aes(ymin=, ymax = y, fill = quant))+
-    scale_x_continuous(breaks=quantiles)+ 
-    scale_fill_brewer(guide="none")+
-    facet_wrap(~ hardiness_year.x)
+  
+  # dens <- density(gradation_hard$Hc)
+  # df_dens <- data.frame(x=dens$x, y=dens$y)
+  # probs <- c(0.1, 0.25, 0.5, 0.75, 0.9)
+  # quantiles <- quantile(gradation_hard$Hc, prob=probs)
+  # df_dens$quant <- factor(findInterval(df_dens$x,quantiles))
+  
+  HC_facet_stack_yr <- ggplot(data = gradation_hard, aes(x = Hc, fill = factor(mon)))+
+    geom_density(position = "stack")+
+    geom_vline(aes(xintercept = 0),color = "black", linetype = "dashed", size = 2 )+
+    # geom_ribbon(aes(ymin=, ymax = y, fill = quant))+
+    # scale_x_continuous(breaks=quantiles)+ 
+    # scale_fill_brewer(guide="none")+
+    facet_wrap(~ hardiness_year.x, scales = "free")
+  
+  HC_facet_stack_yr <- HC_facet_stack + custom_theme()
+  
+  ggsave(plot = HC_facet_stack_yr, paste0(plot_location, grid_location, "/",
+                                      "Density_HC_stack.PNG"), dpi = "print", scale = 10)
+  
+  
+  HC_facet_stack_mon <- ggplot(data = gradation_hard, aes(x = Hc, fill = factor(hardiness_year.x)))+
+    geom_density(position = "stack")+
+    geom_vline(aes(xintercept = 0),color = "black", linetype = "dashed", size = 2 )+
+    # geom_ribbon(aes(ymin=, ymax = y, fill = quant))+
+    # scale_x_continuous(breaks=quantiles)+ 
+    # scale_fill_brewer(guide="none")+
+    facet_wrap(~ mon, scales = "free")
+  
+  HC_facet_stack_mon <- HC_facet_stack_mon + custom_theme()
+  
+  ggsave(plot = HC_facet_stack_mon, paste0(plot_location, grid_location, "/",
+                                          "Density_HC_stack_mon.PNG"), dpi = "print", scale = 10)
   
   
   # geom_density(as.data.frame(Merge_diff), aes(x = min))
