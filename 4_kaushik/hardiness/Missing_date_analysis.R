@@ -63,13 +63,17 @@ output_dir <- "C:/Users/Kaushik Acharya/Documents/R Scripts/i_code_in_R/4_kaushi
 write.csv(missing_dates_analysis,paste0(output_dir,"missing_analysis.csv"))
 
 
-############################################
-# Trying to plot bar graph
-############################################
 
+#########################
+# Read the missing file
+#########################
 
 miss_full <- read.csv(paste0(output_dir,"missing_analysis.csv"))
 head(miss_full)
+
+# read the original file 
+
+Ag_org <- read.csv(paste0(output_dir))
 
 
 ###########################################################
@@ -142,7 +146,9 @@ length(unique(wideformsummary_2008$Station_name))
 
 # miss_3 <- data.frame(miss_3, value = TRUE)
 
-
+############################################
+# Trying to plot bar graph
+############################################
 
 locations <- unique(missing_dates_analysis$Station_name)[10:20]
 locations

@@ -11,7 +11,8 @@ library(ggplot2)
 # Omak - 110
 # Wenatchee - 163
 # Walla walla -31
-#             -123
+# 300021 -123 - location that we found unsual
+# 300047 - 89
 
 ####################################
 # read the lat long comaprer file
@@ -42,10 +43,10 @@ dim(grid_AG_compare)
 
 # locations seperated for into vector for the for loop
 # grid_AG_5 <- grid_AG_compare[4,]
-grid_AG_5 <- subset (grid_AG_compare, grid_AG_compare$Station_ID %in% c(300021, 300253, 330104,
+grid_AG_5 <- subset (grid_AG_compare, grid_AG_compare$Station_ID %in% c(300047,300021, 300253, 330104,
                                                                         330166, 300133))
 
-grid_AG_5 <- grid_AG_5[1]
+grid_AG_5 <- grid_AG_5[5]
 grid_AG_5
 
 place <- grid_AG_5$Station_ID
@@ -317,9 +318,9 @@ for (place in grid_AG_compare$Station_ID){
     geom_col(data = Merge_diff, aes(x = Merge_diff$counter, y = Merge_diff$Hc,
                                     color = "diff"))+
     geom_point(data = Merge_count_AG, aes(x = Merge_count_AG$counter, y = Merge_count_AG$CDI.y),
-                                          shape = 24, size = 3, fill = "yellow")+
+                                          shape = 24, size = 6, fill = "black")+
     geom_point(data = Merge_count_grid, aes(x = Merge_count_grid$counter, y = Merge_count_grid$CDI.x),
-                                          shape = 21, size = 3, fill = "blue")+
+                                          shape = 21, size = 6, fill = "blue")+
     scale_x_discrete(breaks = c(0,100,200),
                      limit = c(0, 100, 200),
                      labels = c("Sep","Dec","Mar"))+
@@ -552,16 +553,16 @@ for (place in grid_AG_compare$Station_ID){
                                      color = "AG_data"), size = 2)+
     geom_point(data = comp_grid_bar, aes(x = comp_grid_bar$counter, 
                                        y = comp_grid_bar$t_min.x),
-               shape = 21, size = 3, fill = "blue")+
+               shape = 21, size = 6, fill = "blue")+
     geom_point(data = comp_grid_bar, aes(x = comp_grid_bar$counter, 
                                          y = comp_grid_bar$t_min.y),
-               shape = 24, size = 3, fill = "blue")+
+               shape = 24, size = 6, fill = "blue")+
     geom_point(data = comp_AG_bar, aes(x = comp_AG_bar$counter, 
                                      y = comp_AG_bar$t_min.x),
-               shape = 21, size = 3, fill = "yellow")+
+               shape = 21, size = 6, fill = "black")+
     geom_point(data = comp_AG_bar, aes(x = comp_AG_bar$counter, 
                                        y = comp_AG_bar$t_min.y),
-               shape = 24, size = 3, fill = "yellow")+
+               shape = 24, size = 6, fill = "black")+
     scale_x_discrete(breaks = c(0,100,200),
                      limit = c(0, 100, 200),
                       labels = c("Sep","Dec","Mar"))+
@@ -650,7 +651,7 @@ for (place in grid_AG_compare$Station_ID){
     ggtitle(paste0('Density Plot by year', grid_location," VS ",Station_name))
   
   
-  HC_facet_stack_yr <- HC_facet_stack + custom_theme()
+  HC_facet_stack_yr <- HC_facet_stack_yr + custom_theme()
   
   ggsave(plot = HC_facet_stack_yr, paste0(plot_location, grid_location, "/",
                                       "Density_HC_stack_yr.PNG"), dpi = "print", scale = 10)
@@ -668,7 +669,7 @@ for (place in grid_AG_compare$Station_ID){
   
   # checking years with less than a years data, so as to not plot
   count_check <- gradation_hard %>% count(hardiness_year.x)
-  count_check <- subset(count_check, count_check$n < 250)
+  count_check <- subset(count_check, count_check$n < 200)
   count_check <- count_check$hardiness_year.x
   count_check
   
@@ -701,13 +702,14 @@ for (place in grid_AG_compare$Station_ID){
   # Season wise Density
   ##############################################
   
-  HC_facet_season <- ggplot(data = gradation_hard, aes(x = Hc, fill = factor(season)))+
-    geom_density(position = "stack")+
+  HC_facet_season <- ggplot(data = gradation_hard, aes(x = Hc, fill = season))+
+    geom_density()+
     geom_vline(aes(xintercept = 0),color = "black", linetype = "dashed", size = 2 )+
     # geom_ribbon(aes(ymin=, ymax = y, fill = quant))+
     # scale_x_continuous(breaks=quantiles)+ 
     # scale_fill_brewer(guide="none")+
-    facet_wrap(~hardiness_year.x ~ season,scales= "free")+
+    facet_grid(~hardiness_year.x ~ season,scales= "free")+
+    # scale_fill_discrete(breaks = c("Fall", "Winter", "Spring"))+
     xlab('Cold hardiness difference')+
     # scale_y_discrete(limits=c(0.5,1))+
     ggtitle(paste0('Density Plot by season', grid_location," VS ",Station_name))
@@ -742,15 +744,15 @@ for (place in grid_AG_compare$Station_ID){
   ########################################
   
   HC_facet_month_yr <- ggplot(data = gradation_hard, aes(x = Hc, fill = factor(mon)))+
-    geom_density(position = "stack")+
+    geom_density()+
     geom_vline(aes(xintercept = 0),color = "black", linetype = "dashed", size = 2 )+
     # geom_ribbon(aes(ymin=, ymax = y, fill = quant))+
     # scale_x_continuous(breaks=quantiles)+ 
     # scale_fill_brewer(guide="none")+
-    facet_wrap(~hardiness_year.x ~mon,scales= "free")+
+    facet_grid(~hardiness_year.x ~mon, scales= "free")+
     xlab('Cold hardiness difference')+
     # scale_y_discrete(limits=c(0.5,1))+
-    ggtitle(paste0('Density Plot by season Stack - ', grid_location," VS ",Station_name))
+    ggtitle(paste0('Density Plot - (Month and Year) - ', grid_location," VS ",Station_name))
   
   HC_facet_month_yr <- HC_facet_month_yr + custom_theme()
   
