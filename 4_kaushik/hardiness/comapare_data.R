@@ -723,8 +723,8 @@ for (place in grid_AG_compare$Station_ID){
   # HC season Stack
   ####################################
   
-  HC_facet_season_stack <- ggplot(data = gradation_hard, aes(x = Hc, fill = factor(season)))+
-    geom_density(position = "stack")+
+  HC_facet_season_stack <- ggplot(data = gradation_hard, aes(x = Hc, color = factor(season)), size =2)+
+    geom_density()+
     geom_vline(aes(xintercept = 0),color = "black", linetype = "dashed", size = 2 )+
     # geom_ribbon(aes(ymin=, ymax = y, fill = quant))+
     # scale_x_continuous(breaks=quantiles)+ 
@@ -735,6 +735,7 @@ for (place in grid_AG_compare$Station_ID){
     ggtitle(paste0('Density Plot by season Stack - ', grid_location," VS ",Station_name))
   
   HC_facet_season_stack <- HC_facet_season_stack + custom_theme()
+  HC_facet_season_stack
   
   ggsave(plot = HC_facet_season_stack, paste0(plot_location, grid_location, "/",
                                         "Density_HC_season_stack.PNG"), dpi = "print", scale = 10)
