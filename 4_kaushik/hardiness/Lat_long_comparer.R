@@ -110,4 +110,25 @@ write.csv(nearest_location, file = paste0(output_dir, "grid_AG_compare.csv"))
 # writing into RDS
 saveRDS(nearest_location, file = paste0(output_dir,"grid_AG_compare.rds"))
 
+####################################
+# Read the files
+#####################################
 
+locations <- read.csv("C:/Users/Kaushik Acharya/Documents/R Scripts/i_code_in_R/4_kaushik/hardiness/Output_data/AG_weather/grid_AG_compare.csv")
+dim(locations)
+head(locations)
+
+locations <- locations %>% select(grid_lat, grid_long)
+locations$location <- paste0("output_observed_historical_data_", locations$grid_lat,"_",locations$grid_long,".csv")
+
+length(unique(locations$location))
+files_needed <- unique(locations$location)
+files_needed
+
+downloaded_file <- list.files("C:/Users/Kaushik Acharya/Documents/R Scripts/i_code_in_R/4_kaushik/for_Vlad/")
+length(unique(downloaded_file))
+
+files_different <- setdiff(files_needed, downloaded_file)
+unique(files_different)
+
+write.csv(files_different, "C:/Users/Kaushik Acharya/Documents/R Scripts/i_code_in_R/4_kaushik/for_Vlad/missing_files.csv")
